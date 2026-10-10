@@ -17,6 +17,8 @@ import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Program
 import Distribution.Verbosity
 
+import Distribution.Utils.Path (makeSymbolicPath)
+
 -- A Cabal 1.16 vs 1.18 compatibility hack, as in 1.18
 -- findProgramLocation has a new (unused in this case) parameter.
 -- ConstOrId adds this parameter when types say it is mandatory.
@@ -79,13 +81,13 @@ mysqlBuildInfo lbi = do
                 else []
 
   return emptyBuildInfo {
-    extraLibDirs = map (drop 2) . filter ("-L" `isPrefixOf`) $
+    extraLibDirs = map (makeSymbolicPath . drop 2) . filter ("-L" `isPrefixOf`) $
                    nub (libsSys ++ libs)
   , extraLibs = map (drop 2) . filter ("-l" `isPrefixOf`) .
                 filter (/= "-lmygcc") $
                 filter (/= "-lmysqlclient_r") $
                 nub (libsSys ++ libs ++ libsR)
-  , includeDirs = map (drop 2) include
+  , includeDirs = map (makeSymbolicPath . drop 2) include
   }
   where
     -- Recover from an error by returning an empty list.
